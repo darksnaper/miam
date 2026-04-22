@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model District {
+  id      String   @id
+  name    String
+  center  Float[]
+  color   String
+  bounds  Json
+  polygon Json
+  venues  Venue[]
+}
+
+model Venue {
+  id            Int      @id @default(autoincrement())
+  name          String
+  type          String
+  tags          String[]
+  address       String
+  distance      String
+  rating        Float
+  image         String
+  closingTime   String
+  pickupWindow  String
+  coords        Float[]
+  districtId    String?
+  district      District? @relation(fields: [districtId], references: [id])
+  menuPositions MenuPosition[]
+  orders        Order[]
+}
+
+model MenuPosition {
+  id          String  @id @default(uuid())
+  name        String
+  image       String
+  price       Int
+  oldPrice    Int
+  slots       Int
+  description String
+  venueId     Int
+  venue       Venue   @relation(fields: [venueId], references: [id])
+  orders      Order[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // In a production app, this SHOULD be hashed!
+  name      String?
+  phone     String?
+  role      String   @default("user") // "user", "merchant", "admin"
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  venueId        Int
+  venue          Venue        @relation(fields: [venueId], references: [id])
+  menuPositionId String
+  menuPosition   MenuPosition @relation(fields: [menuPositionId], references: [id])
+  code           String       // Pickup code (e.g. "1234")
+  status         String       @default("active") // "active", "completed", "cancelled"
+  savings        Int
+  createdAt      DateTime     @default(now())
+}
