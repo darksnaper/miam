@@ -15,5 +15,10 @@
       "src": "/(.*)",
       "dest": "index.js"
     }
-  ]
+  ],
+  "functions": {
+    "index.js": {
+      "includeFiles": "certs/**"
+    }
+  }
 }

@@ -201,8 +201,9 @@ export const AppProvider = ({ children }) => {
   const [districts, setDistricts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const API_BASE = 'http://localhost:3001/api';
+  const API_BASE = 'https://miam-pied.vercel.app/api';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -219,6 +220,8 @@ export const AppProvider = ({ children }) => {
         setDistricts(districtsData);
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        setError('Не удалось загрузить данные. Проверьте интернет или состояние сервера.');
+        alert('Ошибка сервера: ' + error.message);
       } finally {
         setIsLoading(false);
       }
