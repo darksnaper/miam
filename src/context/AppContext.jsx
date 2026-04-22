@@ -196,6 +196,12 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [theme, setTheme] = useState(localStorage.getItem('miam_theme') || 'system');
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('miam_user')));
+  const logout = () => {
+    setUser(null);
+    setOrders([]);
+    localStorage.removeItem('miam_user');
+  };
   const [lang, setLang] = useState(localStorage.getItem('miam_lang') || 'ru');
   const [venues, setVenues] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -218,6 +224,12 @@ export const AppProvider = ({ children }) => {
         
         setVenues(venuesData);
         setDistricts(districtsData);
+
+        if (user) {
+          const ordersRes = await fetch(`${API_BASE}/orders/user/${user.id}`);
+          const ordersData = await ordersRes.json();
+          setOrders(ordersData);
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setError('Не удалось загрузить данные. Проверьте интернет или состояние сервера.');
@@ -228,7 +240,7 @@ export const AppProvider = ({ children }) => {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem('miam_theme', theme);
@@ -301,6 +313,7 @@ export const AppProvider = ({ children }) => {
       venues, districts, isLoading,
       fetchOrders, updateVenueSlots, addVenueCategory, 
       orders, setOrders,
+      user, setUser, logout,
       API_BASE
     }}>
       {children}

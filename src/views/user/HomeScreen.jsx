@@ -8,9 +8,9 @@ import { useAppContext } from '../../context/AppContext';
 import { Geolocation } from '@capacitor/geolocation';
 
 const HomeScreen = ({ onSelectVenue }) => {
-  const { t, venues, districts: AVAILABLE_DISTRICTS, isLoading } = useAppContext();
+  const { t, venues = [], districts: AVAILABLE_DISTRICTS = [], isLoading } = useAppContext();
   const initialDistrictId = sessionStorage.getItem('saved_district') || 'petrogradsky';
-  const initialDistrict = AVAILABLE_DISTRICTS.find(d => d.id === initialDistrictId) || AVAILABLE_DISTRICTS[0] || { center: [59.9575, 30.3081], id: 'petrogradsky', name: 'Петроградский' };
+  const initialDistrict = (AVAILABLE_DISTRICTS || []).find(d => d.id === initialDistrictId) || (AVAILABLE_DISTRICTS || [])[0] || { center: [59.9575, 30.3081], id: 'petrogradsky', name: 'Петроградский' };
 
   const [activeCategory, setActiveCategory] = useState("Все");
   const [searchQuery, setSearchQuery] = useState("");
@@ -290,7 +290,8 @@ const HomeScreen = ({ onSelectVenue }) => {
 
 const VenueCard = ({ venue, onClick, hasLocation }) => {
   const { t } = useAppContext();
-  const totalSlots = venue.categories.reduce((acc, cat) => acc + cat.slots, 0);
+  const categories = venue.categories || [];
+  const totalSlots = categories.reduce((acc, cat) => acc + (cat.slots || 0), 0);
   const isSoldOut = totalSlots === 0;
 
   return (
@@ -334,16 +335,16 @@ const VenueCard = ({ venue, onClick, hasLocation }) => {
            </div>
         ) : (
            <div className="badge-discount" style={{ position: 'absolute', top: '12px', right: '12px' }}>
-             –{Math.round((1 - venue.categories[0].price / venue.categories[0].oldPrice) * 100)}%
+             –{categories[0] ? Math.round((1 - categories[0].price / (categories[0].oldPrice || 1)) * 100) : 0}%
            </div>
         )}
       </div>
       <div style={{ padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '4px' }}>
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '2px' }}>{t(venue.name)}</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '2px' }}>{t(venue.name || '')}</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              {t(venue.type)} • {t(venue.address)}{hasLocation ? ` • ${venue.distance}` : ''}
+              {t(venue.type || '')} • {t(venue.address || '')}{hasLocation ? ` • ${venue.distance}` : ''}
             </p>
           </div>
           <div style={{ textAlign: 'right' }}>

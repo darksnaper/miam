@@ -116,7 +116,7 @@ app.post('/api/orders', async (req, res) => {
 app.get('/api/orders/user/:userId', async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
-      where: { userId: req.params.userId },
+      where: { userId: parseInt(req.params.userId) },
       include: {
         venue: true,
         menuPosition: true
