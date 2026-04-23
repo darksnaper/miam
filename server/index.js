@@ -45,6 +45,13 @@ app.post('/api/auth/login', async (req, res) => {
 
 // --- DATA ROUTES ---
 
+app.get('/api/version', (req, res) => {
+  res.json({
+    latest: 1, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    link: "https://github.com/darksnaper/miam/releases" // Замените на прямую ссылку на APK
+  });
+});
+
 app.get('/api/districts', async (req, res) => {
   try {
     const districts = await prisma.district.findMany();

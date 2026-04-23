@@ -18,19 +18,33 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
+const APP_VERSION = 1;
+
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const { user, setUser, logout, orders, setOrders, API_BASE } = useAppContext();
+  const [updateLink, setUpdateLink] = useState(null);
 
   const role = user?.role || 'user'; // user | merchant | admin
 
   useEffect(() => {
-    if (user) {
+    fetch(`${API_BASE}/version`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.latest > APP_VERSION) {
+          setUpdateLink(data.link);
+        }
+      })
+      .catch(err => console.error("Version check failed", err));
+  }, [API_BASE]);
+
+  useEffect(() => {
+    if (user && !updateLink) {
       setCurrentView(user.role === 'user' ? 'home' : user.role);
     }
-  }, [user]);
+  }, [user, updateLink]);
 
 
   const handleBook = (venue, category) => {
@@ -65,8 +79,12 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      <AnimatePresence mode="wait">
-        {currentView === 'onboarding' && <Onboarding key="onboarding" onDone={() => setCurrentView('auth')} />}
+      {updateLink ? (
+        <UpdateScreen link={updateLink} />
+      ) : (
+        <>
+          <AnimatePresence mode="wait">
+            {currentView === 'onboarding' && <Onboarding key="onboarding" onDone={() => setCurrentView('auth')} />}
         {currentView === 'auth' && <AuthScreen key="auth" onLogin={(u) => { setUser(u); setCurrentView(u.role === 'user' ? 'home' : u.role); }} />}
 
         {currentView === 'home' && (
@@ -161,11 +179,13 @@ function AppContent() {
 
         {currentView === 'merchant' && (
           <AdminDashboard key="admin" user={user} onLogout={() => { logout(); setCurrentView('auth'); }} />
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
 
-      {currentView !== 'onboarding' && currentView !== 'auth' && role === 'user' && !['detail', 'payment', 'checkout', 'map', 'settings', 'favorites', 'notifications', 'support'].includes(currentView) && (
-        <BottomNav current={currentView} setView={setCurrentView} />
+        {currentView !== 'onboarding' && currentView !== 'auth' && role === 'user' && !['detail', 'payment', 'checkout', 'map', 'settings', 'favorites', 'notifications', 'support'].includes(currentView) && (
+          <BottomNav current={currentView} setView={setCurrentView} />
+        )}
+      </>
       )}
     </div>
   );
@@ -266,6 +286,46 @@ const NavItem = ({ icon, label, active, onClick }) => (
     <span style={{ fontSize: '10px', fontWeight: 700, color: active ? 'var(--primary)' : 'var(--text-main)' }}>{label}</span>
   </div>
 );
+
+function UpdateScreen({ link }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="content"
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%)',
+        padding: '40px 20px',
+        textAlign: 'center',
+        zIndex: 9999,
+        height: '100vh'
+      }}
+    >
+      <div style={{ padding: '24px', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '32px', marginBottom: '32px', color: 'var(--primary)' }}>
+        <ChefHat size={64} />
+      </div>
+      <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '16px' }}>Доступно обновление</h1>
+      <p style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: '40px', lineHeight: 1.5 }}>
+        Обязательно обновите приложение, чтобы продолжить получать лучшие предложения со скидкой!
+      </p>
+
+      <button 
+        onClick={() => window.open(link, '_system')}
+        style={{ 
+          background: 'var(--primary)', color: 'white', border: 'none', padding: '16px', 
+          borderRadius: '16px', fontSize: '18px', fontWeight: 800, width: '100%',
+          boxShadow: '0 10px 20px rgba(76, 175, 80, 0.3)'
+        }}
+      >
+        Скачать обновление
+      </button>
+    </motion.div>
+  );
+}
 
 export default function App() {
   return (
