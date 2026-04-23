@@ -17,7 +17,9 @@ const OrdersList = ({ onSelectOrder, user }) => {
   const activeOrders = orders.filter ? orders.filter(o => o.status === 'active') : [];
   const pastOrders = orders.filter ? orders.filter(o => o.status !== 'active') : [];
 
-  const totalSaved = orders.reduce ? orders.reduce((acc, o) => acc + (Number(o.savings) || 0), 0) : 0;
+  const { user: contextUser } = useAppContext();
+  const currentUser = user || contextUser;
+  const totalSaved = currentUser?.totalSaved || 0;
 
   return (
     <motion.div 

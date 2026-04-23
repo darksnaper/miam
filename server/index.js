@@ -51,7 +51,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({
-    latest: 5, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    latest: 6, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
     link: "https://github.com/darksnaper/miam/releases/download/miam/app-debug.apk" // Замените на прямую ссылку на APK
   });
 });
@@ -171,13 +171,34 @@ app.get('/api/orders/user/:userId', async (req, res) => {
 
 app.get('/api/users/:id', async (req, res) => {
   try {
+    const userId = req.params.id;
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id },
+      where: { id: userId },
       include: {
-        favorites: true
+        favorites: true,
+        orders: true // Берем заказы для сверки
       }
     });
+
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Считаем реальную сумму из истории
+    const actualSaved = user.orders.reduce((sum, o) => sum + (o.savings || 0), 0);
+    const actualOrdersCount = user.orders.length;
+
+    // Если в профиле цифры меньше (например, после миграции), обновляем их
+    if (user.totalSaved !== actualSaved || user.totalOrders !== actualOrdersCount) {
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          totalSaved: actualSaved,
+          totalOrders: actualOrdersCount
+        },
+        include: { favorites: true }
+      });
+      return res.json(updatedUser);
+    }
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
