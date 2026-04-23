@@ -20,7 +20,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 2;
+const APP_VERSION = 3;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -220,10 +220,10 @@ function Onboarding({ onDone }) {
         style={{ marginBottom: '60px', width: '100%', maxWidth: '280px' }}
       >
         {/* Логотип, который загрузил пользователь */}
-        <img 
-          src="/logo.png" 
-          alt="Miam Logo" 
-          style={{ width: '100%', height: 'auto', objectFit: 'contain' }} 
+        <img
+          src="/logo.png"
+          alt="Miam Logo"
+          style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
         />
       </motion.div>
 
@@ -306,16 +306,16 @@ function UpdateScreen({ link }) {
     try {
       setDownloading(true);
       setProgress(0);
-      
+
       const fileName = 'miam-update.apk';
-      
+
       // Clean up old file to prevent caching issues or conflicts
       try {
         await Filesystem.deleteFile({ path: fileName, directory: Directory.Cache });
       } catch (e) {
         // file doesn't exist, ignore
       }
-      
+
       const downloadResult = await Filesystem.downloadFile({
         url: link,
         path: fileName,
@@ -368,14 +368,14 @@ function UpdateScreen({ link }) {
       </div>
       <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '16px' }}>Доступно обновление</h1>
       <p style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: downloading ? '24px' : '40px', lineHeight: 1.5 }}>
-        {downloading 
-          ? "Скачиваем новую версию. Пожалуйста, подождите..." 
+        {downloading
+          ? "Скачиваем новую версию. Пожалуйста, подождите..."
           : "Обязательно обновите приложение, чтобы продолжить получать лучшие предложения со скидкой!"}
       </p>
 
       {downloading ? (
         <div style={{ width: '100%', maxWidth: '300px', background: 'var(--surface)', borderRadius: '12px', overflow: 'hidden', height: '16px', border: '1px solid var(--border)' }}>
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ type: 'tween' }}
