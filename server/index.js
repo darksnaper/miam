@@ -76,9 +76,9 @@ app.get('/api/venues', async (req, res) => {
 // --- ORDER ROUTES ---
 
 app.post('/api/orders', async (req, res) => {
-  const userId = parseInt(req.body.userId);
+  const userId = req.body.userId;
   const venueId = parseInt(req.body.venueId);
-  const itemId = parseInt(req.body.itemId);
+  const itemId = req.body.itemId;
   const savings = parseInt(req.body.savings);
   const { code } = req.body;
   
@@ -120,7 +120,7 @@ app.post('/api/orders', async (req, res) => {
 app.get('/api/orders/user/:userId', async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
-      where: { userId: parseInt(req.params.userId) },
+      where: { userId: req.params.userId },
       include: {
         venue: true,
         menuPosition: true
