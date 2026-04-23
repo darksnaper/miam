@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Clock, MapPin, ChevronRight, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Star, Clock, MapPin, ChevronRight, ShoppingCart, Heart } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
 const VenueDetail = ({ venue, onBack, onBook }) => {
-  const { t } = useAppContext();
+  const { t, user, toggleFavoriteVenue } = useAppContext();
   const [selectedCategory, setSelectedCategory] = useState(null);
+  
+  const isFav = user?.favorites?.some(v => v.id === venue?.id);
 
   if (!venue) return null;
 
@@ -42,10 +44,18 @@ const VenueDetail = ({ venue, onBack, onBook }) => {
         minHeight: '100%'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 800 }}>{t(venue.name)}</h1>
-          <div style={{ background: 'var(--accent)', padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Star size={16} fill="var(--primary)" color="var(--primary)" />
-            <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{venue.rating}</span>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, flex: 1, paddingRight: '12px' }}>{t(venue.name)}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ background: 'var(--accent)', padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Star size={16} fill="var(--primary)" color="var(--primary)" />
+              <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{venue.rating}</span>
+            </div>
+            <button 
+              onClick={() => toggleFavoriteVenue(venue.id)}
+              style={{ background: 'var(--bg)', border: '1px solid var(--border)', padding: '8px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
+            >
+              <Heart size={20} fill={isFav ? '#E91E63' : 'none'} color={isFav ? '#E91E63' : 'var(--text-muted)'} />
+            </button>
           </div>
         </div>
         

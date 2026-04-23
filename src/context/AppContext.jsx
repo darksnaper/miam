@@ -31,7 +31,9 @@ const translations = {
     'settings.payment': 'СПОСОБЫ ОПЛАТЫ',
     'settings.add_card': 'Добавить карту',
     'onboarding.title': 'Любимая еда за полцены.',
+    'onboarding.subtitle': 'Спасай вкусные порции из ресторанов и пекарен со скидкой 50% и больше.',
     'onboarding.btn': 'Хочу скидку!',
+    'onboarding.button': 'Продолжить',
     'Пекарня': 'Пекарня',
     'Супермаркет': 'Супермаркет',
     'Кафе': 'Кафе',
@@ -125,7 +127,9 @@ const translations = {
     'settings.payment': 'PAYMENT METHODS',
     'settings.add_card': 'Add Card',
     'onboarding.title': 'Favorite food at half price.',
+    'onboarding.subtitle': 'Rescue delicious meals from restaurants and bakeries at 50% off or more.',
     'onboarding.btn': 'Get Discount!',
+    'onboarding.button': 'Continue',
     'Пекарня': 'Bakery',
     'Супермаркет': 'Supermarket',
     'Кафе': 'Cafe',
@@ -245,6 +249,13 @@ export const AppProvider = ({ children }) => {
           const ordersRes = await fetch(`${API_BASE}/orders/user/${user.id}`);
           const ordersData = await ordersRes.json();
           setOrders(Array.isArray(ordersData) ? ordersData : []);
+          
+          // Background fetch to update user cache (favorites, totalSaved, status etc)
+          try {
+            const userRes = await fetch(`${API_BASE}/users/${user.id}`);
+            const userData = await userRes.json();
+            if (!userData.error) setUser(userData);
+          } catch (e) { console.error('Failed to update fresh user data', e); }
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -331,13 +342,44 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`${API_BASE}/users/${user.id}`);
+      const data = await res.json();
+      if (!data.error) setUser(data);
+    } catch (e) { console.error('Failed to refresh user', e); }
+  };
+
+  const toggleFavoriteVenue = async (venueId) => {
+    if (!user) return;
+    const isFav = user.favorites?.some(v => v.id === venueId);
+    try {
+      // Optimistic update
+      const newFavs = isFav 
+        ? user.favorites.filter(v => v.id !== venueId)
+        : [...(user.favorites || []), venues.find(v => v.id === venueId)].filter(Boolean);
+      setUser(prev => ({ ...prev, favorites: newFavs }));
+
+      // API Call
+      const res = await fetch(`${API_BASE}/users/${user.id}/favorites/${venueId}`, {
+        method: isFav ? 'DELETE' : 'POST'
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) setUser(prev => ({ ...prev, favorites: data }));
+    } catch (e) {
+      console.error('Favorite toggle failed', e);
+      refreshUser(); // revert on fail
+    }
+  };
+
   return (
     <AppContext.Provider value={{ 
       theme, setTheme, lang, setLang, t, 
       venues, districts, isLoading,
       fetchOrders, updateVenueSlots, addVenueCategory, 
       orders, setOrders,
-      user, setUser, logout,
+      user, setUser, logout, refreshUser, toggleFavoriteVenue,
       API_BASE
     }}>
       {children}

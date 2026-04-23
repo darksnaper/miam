@@ -8,8 +8,9 @@ const ProfileScreen = ({ user: rawUser, orders: rawOrders = [], onLogout, onNavi
   const user = rawUser || contextUser;
   const safeOrders = rawOrders || [];
   
-  const totalSaved = (safeOrders.reduce ? safeOrders.reduce((acc, o) => acc + (Number(o.savings) || 0), 0) : 0) + 12400; 
-  const itemsRescued = (safeOrders.length || 0) + 15; 
+  const totalSaved = user?.totalSaved || 0; 
+  const itemsRescued = user?.totalOrders || 0; 
+  const favoritesCount = user?.favorites?.length || 0;
   const nextGoal = 15000;
   const progress = Math.min(100, (totalSaved / nextGoal) * 100);
 
@@ -68,7 +69,7 @@ const ProfileScreen = ({ user: rawUser, orders: rawOrders = [], onLogout, onNavi
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
           <ImpactItem icon={<ShoppingBag size={20} />} label={t('profile.orders')} value={`${itemsRescued}`} color="var(--text-main)" />
-          <ImpactItem icon={<Heart size={20} />} label={t('profile.favorites')} value="5" color="#E91E63" />
+          <ImpactItem icon={<Heart size={20} />} label={t('profile.favorites')} value={`${favoritesCount}`} color="#E91E63" />
         </div>
       </div>
 
@@ -84,7 +85,7 @@ const ProfileScreen = ({ user: rawUser, orders: rawOrders = [], onLogout, onNavi
 
       {/* Gamification Area */}
       <div>
-        <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px' }}>Твой рейтинг: Эко-герой 🍃</h3>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px' }}>Твой рейтинг: {user?.status || 'Новичок'} 🍃</h3>
         <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px' }}>Здесь твои заработанные статусы и награды</p>
 
         {/* Badges */}

@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@capacitor/core": "^8.3.1",
+    "@capacitor/filesystem": "^8.1.2",
     "@capacitor/geolocation": "^8.2.0",
+    "@capawesome-team/capacitor-file-opener": "^8.0.1",
     "@pbe/react-yandex-maps": "^1.2.5",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",

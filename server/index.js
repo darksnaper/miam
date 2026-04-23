@@ -22,7 +22,8 @@ app.post('/api/auth/register', async (req, res) => {
   const { email, password, name, role } = req.body;
   try {
     const user = await prisma.user.create({
-      data: { email, password, name, role: role || 'user' }
+      data: { email, password, name, role: role || 'user' },
+      include: { favorites: true }
     });
     res.json(user);
   } catch (error) {
@@ -33,7 +34,10 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { favorites: true }
+    });
     if (!user || user.password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -47,7 +51,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({
-    latest: 2, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    latest: 3, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
     link: "https://github.com/darksnaper/miam/releases/download/miam/app-debug.apk" // Замените на прямую ссылку на APK
   });
 });
@@ -115,6 +119,15 @@ app.post('/api/orders', async (req, res) => {
         }
       });
 
+      // 3. Update user aggregate stats
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          totalSaved: { increment: savings },
+          totalOrders: { increment: 1 }
+        }
+      });
+
       return order;
     });
 
@@ -147,6 +160,53 @@ app.get('/api/orders/user/:userId', async (req, res) => {
     }));
 
     res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- USER PROFILE ROUTES ---
+
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.id },
+      include: {
+        favorites: true
+      }
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/users/:userId/favorites/:venueId', async (req, res) => {
+  try {
+    const user = await prisma.user.update({
+      where: { id: req.params.userId },
+      data: {
+        favorites: { connect: { id: parseInt(req.params.venueId) } }
+      },
+      include: { favorites: true }
+    });
+    res.json(user.favorites);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/users/:userId/favorites/:venueId', async (req, res) => {
+  try {
+    const user = await prisma.user.update({
+      where: { id: req.params.userId },
+      data: {
+        favorites: { disconnect: { id: parseInt(req.params.venueId) } }
+      },
+      include: { favorites: true }
+    });
+    res.json(user.favorites);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

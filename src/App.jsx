@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { FileOpener } from '@capawesome-team/capacitor-file-opener';
 import { ChefHat, Navigation, Compass, ShoppingBag, User } from 'lucide-react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import AuthScreen from './views/auth/AuthScreen';
@@ -30,7 +32,7 @@ function AppContent() {
   const role = user?.role || 'user'; // user | merchant | admin
 
   useEffect(() => {
-    fetch(`${API_BASE}/version`)
+    fetch(`${API_BASE}/version`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.latest > APP_VERSION) {
@@ -204,53 +206,47 @@ function Onboarding({ onDone }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, var(--primary) 0%, #2E7D32 100%)',
-        color: 'white',
+        background: 'var(--bg)', // Светлый или темный фон в зависимости от темы
+        color: 'var(--text-main)',
         padding: '40px 20px',
-        textAlign: 'center'
+        textAlign: 'center',
+        height: '100vh'
       }}
     >
       <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        style={{ width: 120, height: 120, background: 'rgba(255,255,255,0.2)', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px' }}
+        initial={{ scale: 0.5, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+        style={{ marginBottom: '60px', width: '100%', maxWidth: '280px' }}
       >
-        <ChefHat size={64} fill="white" />
+        {/* Логотип, который загрузил пользователь */}
+        <img 
+          src="/logo.png" 
+          alt="Miam Logo" 
+          style={{ width: '100%', height: 'auto', objectFit: 'contain' }} 
+        />
       </motion.div>
-      <motion.h1
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        style={{ fontSize: '36px', fontWeight: 900, marginBottom: '16px' }}
-      >
-        {t('onboarding.title')}
-      </motion.h1>
-      <motion.p
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        style={{ fontSize: '18px', opacity: 0.9, marginBottom: '48px', lineHeight: 1.5, maxWidth: '300px' }}
-      >
-        {t('onboarding.subtitle')}
-      </motion.p>
+
+      <div style={{ flex: 1 }} /> {/* Spacer */}
 
       <motion.button
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8 }}
+        transition={{ delay: 0.4 }}
         whileTap={{ scale: 0.95 }}
         onClick={onDone}
         style={{
-          background: 'white',
-          color: 'var(--primary)',
+          background: 'var(--primary)',
+          color: 'white',
           border: 'none',
           padding: '20px 40px',
           borderRadius: '30px',
           fontSize: '18px',
           fontWeight: 800,
           width: '100%',
-          boxShadow: '0 10px 20px rgba(0,0,0,0.1)'
+          maxWidth: '350px',
+          boxShadow: '0 10px 20px rgba(76, 175, 80, 0.3)',
+          marginBottom: '20px'
         }}
       >
         {t('onboarding.button')}
@@ -288,6 +284,68 @@ const NavItem = ({ icon, label, active, onClick }) => (
 );
 
 function UpdateScreen({ link }) {
+  const [downloading, setDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let progressListener;
+    Filesystem.addListener('progress', (state) => {
+      if (state.bytes && state.contentLength) {
+        setProgress(Math.round((state.bytes / state.contentLength) * 100));
+      }
+    }).then(listener => {
+      progressListener = listener;
+    });
+
+    return () => {
+      if (progressListener) progressListener.remove();
+    };
+  }, []);
+
+  const startDownloadAndInstall = async () => {
+    try {
+      setDownloading(true);
+      setProgress(0);
+      
+      const fileName = 'miam-update.apk';
+      
+      // Clean up old file to prevent caching issues or conflicts
+      try {
+        await Filesystem.deleteFile({ path: fileName, directory: Directory.Cache });
+      } catch (e) {
+        // file doesn't exist, ignore
+      }
+      
+      const downloadResult = await Filesystem.downloadFile({
+        url: link,
+        path: fileName,
+        directory: Directory.Cache,
+        progress: true, // Enables firing the 'progress' listener
+      });
+
+      // Wait for it to become physically available
+      setProgress(100);
+
+      try {
+        await FileOpener.openFile({
+          path: downloadResult.path,
+          mimeType: 'application/vnd.android.package-archive'
+        });
+      } catch (openErr) {
+        console.error("Open Error fallback", openErr);
+        // Fallback: If FileProvider isn't perfect, use default intent
+        await FileOpener.openFile({ path: fileName });
+      }
+
+    } catch (e) {
+      console.error('Download failed', e);
+      alert('Ошибка скачивания обновления (возможно нет интернета или прав). Резервный канал...');
+      window.open(link, '_system');
+    } finally {
+      setTimeout(() => setDownloading(false), 2000);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -309,20 +367,33 @@ function UpdateScreen({ link }) {
         <ChefHat size={64} />
       </div>
       <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '16px' }}>Доступно обновление</h1>
-      <p style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: '40px', lineHeight: 1.5 }}>
-        Обязательно обновите приложение, чтобы продолжить получать лучшие предложения со скидкой!
+      <p style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: downloading ? '24px' : '40px', lineHeight: 1.5 }}>
+        {downloading 
+          ? "Скачиваем новую версию. Пожалуйста, подождите..." 
+          : "Обязательно обновите приложение, чтобы продолжить получать лучшие предложения со скидкой!"}
       </p>
 
-      <button
-        onClick={() => window.open(link, '_system')}
-        style={{
-          background: 'var(--primary)', color: 'white', border: 'none', padding: '16px',
-          borderRadius: '16px', fontSize: '18px', fontWeight: 800, width: '100%',
-          boxShadow: '0 10px 20px rgba(76, 175, 80, 0.3)'
-        }}
-      >
-        Скачать обновление
-      </button>
+      {downloading ? (
+        <div style={{ width: '100%', maxWidth: '300px', background: 'var(--surface)', borderRadius: '12px', overflow: 'hidden', height: '16px', border: '1px solid var(--border)' }}>
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ type: 'tween' }}
+            style={{ height: '100%', background: 'var(--primary)' }}
+          />
+        </div>
+      ) : (
+        <button
+          onClick={startDownloadAndInstall}
+          style={{
+            background: 'var(--primary)', color: 'white', border: 'none', padding: '16px',
+            borderRadius: '16px', fontSize: '18px', fontWeight: 800, width: '100%',
+            boxShadow: '0 10px 20px rgba(76, 175, 80, 0.3)'
+          }}
+        >
+          Скачать обновление
+        </button>
+      )}
     </motion.div>
   );
 }

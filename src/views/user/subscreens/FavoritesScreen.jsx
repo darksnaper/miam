@@ -4,8 +4,8 @@ import { ArrowLeft, Star, MapPin } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 
 const FavoritesScreen = ({ onBack, onSelectVenue }) => {
-  const { venues } = useAppContext();
-  const favorites = venues.slice(0, 2); // Имитация списка избранного
+  const { user } = useAppContext();
+  const favorites = user?.favorites || [];
   
   return (
     <motion.div 
