@@ -201,8 +201,12 @@ export const AppProvider = ({ children }) => {
     if (!saved) return null;
     try {
       const parsed = JSON.parse(saved);
-      // PostgreSQL uses integer IDs. If ID is a string (UUID/timestamp from old mock data), reject it.
-      if (typeof parsed?.id !== 'number') return null;
+      // PostgreSQL uses auto-incrementing integer IDs starting from 1. 
+      // The old mock user generated IDs using Date.now() which are > 1 trillion.
+      if (typeof parsed?.id !== 'number' || parsed.id > 1000000) {
+        localStorage.removeItem('miam_user');
+        return null;
+      }
       return parsed;
     } catch {
       return null;
