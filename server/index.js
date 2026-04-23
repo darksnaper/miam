@@ -94,10 +94,12 @@ app.post('/api/orders', async (req, res) => {
   const { code } = req.body;
 
   try {
+    console.log("Creating order for user:", userId, "venue:", venueId, "item:", itemId);
     const result = await prisma.$transaction(async (tx) => {
       // 1. Decrement slots
       const item = await tx.menuPosition.findUnique({ where: { id: itemId } });
-      if (!item || item.slots <= 0) throw new Error('No slots available');
+      if (!item) throw new Error('Item not found: ' + itemId);
+      if (item.slots <= 0) throw new Error('No slots available');
 
       await tx.menuPosition.update({
         where: { id: itemId },
@@ -108,9 +110,9 @@ app.post('/api/orders', async (req, res) => {
       const order = await tx.order.create({
         data: {
           userId,
-          venueId,
+          venueId: Number(venueId),
           menuPositionId: itemId,
-          savings,
+          savings: Number(savings),
           code: code || Math.floor(1000 + Math.random() * 9000).toString(),
         },
         include: {
