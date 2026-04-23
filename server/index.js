@@ -47,8 +47,8 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({
-    latest: 1, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
-    link: "https://github.com/darksnaper/miam/releases" // Замените на прямую ссылку на APK
+    latest: 2, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    link: "https://github.com/darksnaper/miam/releases/download/miam/app-debug.apk" // Замените на прямую ссылку на APK
   });
 });
 
@@ -68,12 +68,12 @@ app.get('/api/venues', async (req, res) => {
         menuPositions: true
       }
     });
-    
+
     const formattedVenues = venues.map(v => ({
       ...v,
       categories: v.menuPositions
     }));
-    
+
     res.json(formattedVenues);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -88,13 +88,13 @@ app.post('/api/orders', async (req, res) => {
   const itemId = req.body.itemId;
   const savings = parseInt(req.body.savings);
   const { code } = req.body;
-  
+
   try {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Decrement slots
       const item = await tx.menuPosition.findUnique({ where: { id: itemId } });
       if (!item || item.slots <= 0) throw new Error('No slots available');
-      
+
       await tx.menuPosition.update({
         where: { id: itemId },
         data: { slots: item.slots - 1 }
@@ -114,7 +114,7 @@ app.post('/api/orders', async (req, res) => {
           menuPosition: true
         }
       });
-      
+
       return order;
     });
 
@@ -134,7 +134,7 @@ app.get('/api/orders/user/:userId', async (req, res) => {
       },
       orderBy: { createdAt: 'desc' }
     });
-    
+
     // Format to match frontend structure
     const formatted = orders.map(o => ({
       id: o.id,
@@ -145,7 +145,7 @@ app.get('/api/orders/user/:userId', async (req, res) => {
       savings: o.savings,
       date: o.createdAt
     }));
-    
+
     res.json(formatted);
   } catch (error) {
     res.status(500).json({ error: error.message });

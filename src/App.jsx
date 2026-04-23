@@ -18,7 +18,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 1;
+const APP_VERSION = 2;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -85,107 +85,107 @@ function AppContent() {
         <>
           <AnimatePresence mode="wait">
             {currentView === 'onboarding' && <Onboarding key="onboarding" onDone={() => setCurrentView('auth')} />}
-        {currentView === 'auth' && <AuthScreen key="auth" onLogin={(u) => { setUser(u); setCurrentView(u.role === 'user' ? 'home' : u.role); }} />}
+            {currentView === 'auth' && <AuthScreen key="auth" onLogin={(u) => { setUser(u); setCurrentView(u.role === 'user' ? 'home' : u.role); }} />}
 
-        {currentView === 'home' && (
-          <HomeScreen 
-            key="home" 
-            onSelectVenue={(v) => {
-              if (v === 'map') {
-                setCurrentView('map');
-              } else {
-                setSelectedVenue(v);
-                setCurrentView('detail');
-              }
-            }} 
-          />
-        )}
+            {currentView === 'home' && (
+              <HomeScreen
+                key="home"
+                onSelectVenue={(v) => {
+                  if (v === 'map') {
+                    setCurrentView('map');
+                  } else {
+                    setSelectedVenue(v);
+                    setCurrentView('detail');
+                  }
+                }}
+              />
+            )}
 
-        {currentView === 'map' && (
-          <MapScreen 
-            key="map"
-            onBack={() => setCurrentView('home')}
-            onSelectVenue={(v) => {
-              setSelectedVenue(v);
-              setCurrentView('detail');
-            }}
-          />
-        )}
+            {currentView === 'map' && (
+              <MapScreen
+                key="map"
+                onBack={() => setCurrentView('home')}
+                onSelectVenue={(v) => {
+                  setSelectedVenue(v);
+                  setCurrentView('detail');
+                }}
+              />
+            )}
 
-        {currentView === 'orders' && (
-          <OrdersList 
-            key="orders"
-            orders={orders}
-            onSelectOrder={(order) => {
-              setCurrentView('checkout');
-            }}
-          />
-        )}
+            {currentView === 'orders' && (
+              <OrdersList
+                key="orders"
+                orders={orders}
+                onSelectOrder={(order) => {
+                  setCurrentView('checkout');
+                }}
+              />
+            )}
 
-        {currentView === 'profile' && (
-          <ProfileScreen 
-            key="profile"
-            user={user}
-            orders={orders}
-            onLogout={() => { logout(); setCurrentView('auth'); }}
-            onNavigate={(screen) => setCurrentView(screen)}
-          />
-        )}
+            {currentView === 'profile' && (
+              <ProfileScreen
+                key="profile"
+                user={user}
+                orders={orders}
+                onLogout={() => { logout(); setCurrentView('auth'); }}
+                onNavigate={(screen) => setCurrentView(screen)}
+              />
+            )}
 
-        {currentView === 'settings' && <SettingsScreen key="settings" user={user} onBack={() => setCurrentView('profile')} />}
-        
-        {currentView === 'favorites' && (
-          <FavoritesScreen 
-            key="favorites" 
-            onBack={() => setCurrentView('profile')} 
-            onSelectVenue={(v) => {
-              setSelectedVenue(v);
-              setCurrentView('detail');
-            }} 
-          />
-        )}
+            {currentView === 'settings' && <SettingsScreen key="settings" user={user} onBack={() => setCurrentView('profile')} />}
 
-        {currentView === 'notifications' && <NotificationsScreen key="notifications" onBack={() => setCurrentView('profile')} />}
-        {currentView === 'support' && <SupportScreen key="support" onBack={() => setCurrentView('profile')} />}
+            {currentView === 'favorites' && (
+              <FavoritesScreen
+                key="favorites"
+                onBack={() => setCurrentView('profile')}
+                onSelectVenue={(v) => {
+                  setSelectedVenue(v);
+                  setCurrentView('detail');
+                }}
+              />
+            )}
 
-        {currentView === 'detail' && (
-          <VenueDetail 
-            key="detail" 
-            venue={selectedVenue} 
-            onBack={() => setCurrentView('home')} 
-            onBook={(cat) => handleBook(selectedVenue, cat)}
-          />
-        )}
+            {currentView === 'notifications' && <NotificationsScreen key="notifications" onBack={() => setCurrentView('profile')} />}
+            {currentView === 'support' && <SupportScreen key="support" onBack={() => setCurrentView('profile')} />}
 
-        {currentView === 'payment' && (
-          <PaymentScreen 
-            key="payment" 
-            venue={selectedVenue} 
-            category={selectedCategory}
-            onBack={() => setCurrentView('detail')} 
-            onComplete={completePayment} 
-          />
-        )}
+            {currentView === 'detail' && (
+              <VenueDetail
+                key="detail"
+                venue={selectedVenue}
+                onBack={() => setCurrentView('home')}
+                onBook={(cat) => handleBook(selectedVenue, cat)}
+              />
+            )}
 
-        {currentView === 'checkout' && (
-          <Checkout 
-            key="checkout" 
-            venue={selectedVenue} 
-            order={orders[0]} // Pass the newly created order
-            onBack={() => setCurrentView('home')} 
-            onDone={() => setCurrentView('home')} 
-          />
-        )}
+            {currentView === 'payment' && (
+              <PaymentScreen
+                key="payment"
+                venue={selectedVenue}
+                category={selectedCategory}
+                onBack={() => setCurrentView('detail')}
+                onComplete={completePayment}
+              />
+            )}
 
-        {currentView === 'merchant' && (
-          <AdminDashboard key="admin" user={user} onLogout={() => { logout(); setCurrentView('auth'); }} />
+            {currentView === 'checkout' && (
+              <Checkout
+                key="checkout"
+                venue={selectedVenue}
+                order={orders[0]} // Pass the newly created order
+                onBack={() => setCurrentView('home')}
+                onDone={() => setCurrentView('home')}
+              />
+            )}
+
+            {currentView === 'merchant' && (
+              <AdminDashboard key="admin" user={user} onLogout={() => { logout(); setCurrentView('auth'); }} />
+            )}
+          </AnimatePresence>
+
+          {currentView !== 'onboarding' && currentView !== 'auth' && role === 'user' && !['detail', 'payment', 'checkout', 'map', 'settings', 'favorites', 'notifications', 'support'].includes(currentView) && (
+            <BottomNav current={currentView} setView={setCurrentView} />
           )}
-        </AnimatePresence>
-
-        {currentView !== 'onboarding' && currentView !== 'auth' && role === 'user' && !['detail', 'payment', 'checkout', 'map', 'settings', 'favorites', 'notifications', 'support'].includes(currentView) && (
-          <BottomNav current={currentView} setView={setCurrentView} />
-        )}
-      </>
+        </>
       )}
     </div>
   );
@@ -194,15 +194,15 @@ function AppContent() {
 function Onboarding({ onDone }) {
   const { t } = useAppContext();
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="content"
-      style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, var(--primary) 0%, #2E7D32 100%)',
         color: 'white',
@@ -210,7 +210,7 @@ function Onboarding({ onDone }) {
         textAlign: 'center'
       }}
     >
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -218,7 +218,7 @@ function Onboarding({ onDone }) {
       >
         <ChefHat size={64} fill="white" />
       </motion.div>
-      <motion.h1 
+      <motion.h1
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
@@ -226,7 +226,7 @@ function Onboarding({ onDone }) {
       >
         {t('onboarding.title')}
       </motion.h1>
-      <motion.p 
+      <motion.p
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6 }}
@@ -235,19 +235,19 @@ function Onboarding({ onDone }) {
         {t('onboarding.subtitle')}
       </motion.p>
 
-      <motion.button 
+      <motion.button
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8 }}
         whileTap={{ scale: 0.95 }}
         onClick={onDone}
-        style={{ 
-          background: 'white', 
-          color: 'var(--primary)', 
-          border: 'none', 
-          padding: '20px 40px', 
-          borderRadius: '30px', 
-          fontSize: '18px', 
+        style={{
+          background: 'white',
+          color: 'var(--primary)',
+          border: 'none',
+          padding: '20px 40px',
+          borderRadius: '30px',
+          fontSize: '18px',
           fontWeight: 800,
           width: '100%',
           boxShadow: '0 10px 20px rgba(0,0,0,0.1)'
@@ -263,7 +263,7 @@ const BottomNav = ({ current, setView }) => {
   return (
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
-      background: 'color-mix(in srgb, var(--surface) 80%, transparent)', 
+      background: 'color-mix(in srgb, var(--surface) 80%, transparent)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       padding: '16px 20px',
@@ -274,7 +274,7 @@ const BottomNav = ({ current, setView }) => {
       zIndex: 100
     }}>
       <NavItem icon={<Compass size={24} />} label="Обзор" active={current === 'home'} onClick={() => setView('home')} />
-      <NavItem icon={<div style={{position: 'relative'}}><ShoppingBag size={24} /><div style={{position:'absolute', top:-4, right:-4, background:'var(--primary)', width:10, height:10, borderRadius:'50%'}}/></div>} label="Заказы" active={current === 'orders'} onClick={() => setView('orders')} />
+      <NavItem icon={<div style={{ position: 'relative' }}><ShoppingBag size={24} /><div style={{ position: 'absolute', top: -4, right: -4, background: 'var(--primary)', width: 10, height: 10, borderRadius: '50%' }} /></div>} label="Заказы" active={current === 'orders'} onClick={() => setView('orders')} />
       <NavItem icon={<User size={24} />} label="Профиль" active={current === 'profile'} onClick={() => setView('profile')} />
     </div>
   );
@@ -289,14 +289,14 @@ const NavItem = ({ icon, label, active, onClick }) => (
 
 function UpdateScreen({ link }) {
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className="content"
-      style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%)',
         padding: '40px 20px',
@@ -313,10 +313,10 @@ function UpdateScreen({ link }) {
         Обязательно обновите приложение, чтобы продолжить получать лучшие предложения со скидкой!
       </p>
 
-      <button 
+      <button
         onClick={() => window.open(link, '_system')}
-        style={{ 
-          background: 'var(--primary)', color: 'white', border: 'none', padding: '16px', 
+        style={{
+          background: 'var(--primary)', color: 'white', border: 'none', padding: '16px',
           borderRadius: '16px', fontSize: '18px', fontWeight: 800, width: '100%',
           boxShadow: '0 10px 20px rgba(76, 175, 80, 0.3)'
         }}
