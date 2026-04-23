@@ -51,7 +51,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({
-    latest: 6, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    latest: 7, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
     link: "https://github.com/darksnaper/miam/releases/download/miam/app-debug.apk" // Замените на прямую ссылку на APK
   });
 });
@@ -87,35 +87,29 @@ app.get('/api/venues', async (req, res) => {
 // --- ORDER ROUTES ---
 
 app.post('/api/orders', async (req, res) => {
-  const userId = req.body.userId;
-  const venueId = parseInt(req.body.venueId);
-  const itemId = req.body.itemId;
-  const savings = parseInt(req.body.savings);
-  const { code } = req.body;
-
   try {
-    console.log("Creating order for user:", userId, "venue:", venueId, "item:", itemId);
+    const { userId, itemId, code } = req.body;
+    const venueId = parseInt(req.body.venueId);
+    const savings = parseInt(req.body.savings) || 0;
+
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Decrement slots
+      // 1. Уменьшаем слоты
       const item = await tx.menuPosition.findUnique({ where: { id: itemId } });
-      if (!item) throw new Error('Item not found: ' + itemId);
-      if (item.slots <= 0) throw new Error('No slots available');
+      if (!item) throw new Error('Предмет не найден');
+      if (item.slots <= 0) throw new Error('Места в этом заведении уже закончились');
 
       await tx.menuPosition.update({
         where: { id: itemId },
         data: { slots: item.slots - 1 }
       });
 
-      // Safe savings check
-      const safeSavings = Math.max(0, parseInt(req.body.savings) || 0);
-
-      // 2. Create order
+      // 2. Создаем заказ
       const order = await tx.order.create({
         data: {
           userId,
-          venueId: Number(venueId),
+          venueId,
           menuPositionId: itemId,
-          savings: safeSavings,
+          savings,
           code: code || Math.floor(1000 + Math.random() * 9000).toString(),
         },
         include: {
@@ -124,26 +118,26 @@ app.post('/api/orders', async (req, res) => {
         }
       });
 
-      // 3. Update user aggregate stats (only if user exists)
-      try {
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            totalSaved: { increment: safeSavings },
-            totalOrders: { increment: 1 }
-          }
-        });
-      } catch (userErr) {
-        console.warn("Could not update user stats (user might not exist in current DB)", userErr);
-        // We don't throw here, so the order is still created even if stats fail
-      }
+      // 3. Обновляем статистику пользователя (Строго!)
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          totalSaved: { increment: savings },
+          totalOrders: { increment: 1 }
+        }
+      });
 
       return order;
     });
 
     res.json(result);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Order error:", error);
+    // Отправляем понятную ошибку на фронтенд
+    const message = error.message.includes('Foreign key constraint')
+      ? 'Ошибка аккаунта. Пожалуйста, перезайдите в профиль.'
+      : error.message;
+    res.status(400).json({ error: message });
   }
 });
 

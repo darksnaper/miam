@@ -346,6 +346,11 @@ export const AppProvider = ({ children }) => {
     if (!user) return;
     try {
       const res = await fetch(`${API_BASE}/users/${user.id}`);
+      if (res.status === 404) {
+        console.warn("User not found in DB, logging out...");
+        logout();
+        return;
+      }
       const data = await res.json();
       if (!data.error) setUser(data);
     } catch (e) { console.error('Failed to refresh user', e); }
