@@ -255,6 +255,14 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('miam_lang', lang);
   }, [lang]);
 
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('miam_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('miam_user');
+    }
+  }, [user]);
+
   const t = (key) => translations[lang]?.[key] || key;
 
   const fetchOrders = async (userId) => {

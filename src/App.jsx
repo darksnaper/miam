@@ -22,8 +22,7 @@ function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [user, setUser] = useState(null);
-  const { orders, setOrders, API_BASE } = useAppContext();
+  const { user, setUser, logout, orders, setOrders, API_BASE } = useAppContext();
 
   const role = user?.role || 'user'; // user | merchant | admin
 
@@ -37,17 +36,6 @@ function AppContent() {
     }
   }, []);
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-    localStorage.setItem('miam_user', JSON.stringify(userData));
-    setCurrentView(userData.role === 'user' ? 'home' : userData.role);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('miam_user');
-    setCurrentView('auth');
-  };
 
   const handleBook = (venue, category) => {
     setSelectedVenue(venue);
@@ -83,7 +71,7 @@ function AppContent() {
     <div className="app-container">
       <AnimatePresence mode="wait">
         {currentView === 'onboarding' && <Onboarding key="onboarding" onDone={() => setCurrentView('auth')} />}
-        {currentView === 'auth' && <AuthScreen key="auth" onLogin={handleLogin} />}
+        {currentView === 'auth' && <AuthScreen key="auth" onLogin={(u) => { setUser(u); setCurrentView(u.role === 'user' ? 'home' : u.role); }} />}
 
         {currentView === 'home' && (
           <HomeScreen 
@@ -125,7 +113,7 @@ function AppContent() {
             key="profile"
             user={user}
             orders={orders}
-            onLogout={handleLogout}
+            onLogout={() => { logout(); setCurrentView('auth'); }}
             onNavigate={(screen) => setCurrentView(screen)}
           />
         )}
@@ -176,11 +164,7 @@ function AppContent() {
         )}
 
         {currentView === 'merchant' && (
-          <MerchantDashboard key="merchant" user={user} onLogout={handleLogout} />
-        )}
-
-        {currentView === 'admin' && (
-          <AdminDashboard key="admin" user={user} onLogout={handleLogout} />
+          <AdminDashboard key="admin" user={user} onLogout={() => { logout(); setCurrentView('auth'); }} />
         )}
       </AnimatePresence>
 
