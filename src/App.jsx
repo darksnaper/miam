@@ -20,7 +20,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 3;
+const APP_VERSION = 4;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -206,50 +206,54 @@ function Onboarding({ onDone }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg)', // Светлый или темный фон в зависимости от темы
-        color: 'var(--text-main)',
+        background: '#ffffff', // Идеально белый фон для слияния с квадратным логотипом
+        color: '#1A3636',
         padding: '40px 20px',
         textAlign: 'center',
-        height: '100vh'
+        height: '100vh',
+        width: '100vw',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 9999
       }}
     >
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-        style={{ marginBottom: '60px', width: '100%', maxWidth: '280px' }}
-      >
-        {/* Логотип, который загрузил пользователь */}
-        <img
-          src="/logo.png"
-          alt="Miam Logo"
-          style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
-        />
-      </motion.div>
-
-      <div style={{ flex: 1 }} /> {/* Spacer */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0, y: 10 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+          style={{ width: '100%', maxWidth: '300px' }}
+        >
+          <img
+            src="/logo.png"
+            alt="Miam Logo"
+            style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
+          />
+        </motion.div>
+      </div>
 
       <motion.button
-        initial={{ y: 20, opacity: 0 }}
+        initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.3 }}
         whileTap={{ scale: 0.95 }}
         onClick={onDone}
         style={{
-          background: 'var(--primary)',
+          background: '#FF9F00', // Оранжевый цвет прямо из логотипа сумки
           color: 'white',
           border: 'none',
           padding: '20px 40px',
-          borderRadius: '30px',
+          borderRadius: '24px',
           fontSize: '18px',
           fontWeight: 800,
           width: '100%',
           maxWidth: '350px',
-          boxShadow: '0 10px 20px rgba(76, 175, 80, 0.3)',
-          marginBottom: '20px'
+          boxShadow: '0 8px 25px rgba(255, 159, 0, 0.35)',
+          marginBottom: 'env(safe-area-inset-bottom, 20px)' // Отступ снизу для айфонов
         }}
       >
-        {t('onboarding.button')}
+        {t('onboarding.button') || 'Начать выгодно!'}
       </motion.button>
     </motion.div>
   );
