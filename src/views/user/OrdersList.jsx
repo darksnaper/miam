@@ -5,7 +5,8 @@ import { useAppContext } from '../../context/AppContext';
 import { useEffect } from 'react';
 
 const OrdersList = ({ onSelectOrder, user }) => {
-  const { orders, fetchOrders } = useAppContext();
+  const { orders: rawOrders, fetchOrders } = useAppContext();
+  const orders = rawOrders || [];
   
   useEffect(() => {
     if (user?.id) {
@@ -13,10 +14,10 @@ const OrdersList = ({ onSelectOrder, user }) => {
     }
   }, [user]);
 
-  const activeOrders = orders.filter(o => o.status === 'active');
-  const pastOrders = orders.filter(o => o.status !== 'active');
+  const activeOrders = orders.filter ? orders.filter(o => o.status === 'active') : [];
+  const pastOrders = orders.filter ? orders.filter(o => o.status !== 'active') : [];
 
-  const totalSaved = orders.reduce((acc, o) => acc + (Number(o.savings) || 0), 0);
+  const totalSaved = orders.reduce ? orders.reduce((acc, o) => acc + (Number(o.savings) || 0), 0) : 0;
 
   return (
     <motion.div 

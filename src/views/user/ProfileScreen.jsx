@@ -3,12 +3,15 @@ import { motion } from 'framer-motion';
 import { User, Settings, Bell, Shield, Heart, HelpCircle, LogOut, Leaf, Wallet, ShoppingBag, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
-const ProfileScreen = ({ user, orders, onLogout, onNavigate }) => {
-  const { t } = useAppContext();
-  const totalSaved = orders.reduce((acc, o) => acc + (Number(o.savings) || 0), 0) + 12400; 
-  const itemsRescued = orders.length + 15; 
+const ProfileScreen = ({ user: rawUser, orders: rawOrders = [], onLogout, onNavigate }) => {
+  const { t, user: contextUser } = useAppContext();
+  const user = rawUser || contextUser;
+  const safeOrders = rawOrders || [];
+  
+  const totalSaved = (safeOrders.reduce ? safeOrders.reduce((acc, o) => acc + (Number(o.savings) || 0), 0) : 0) + 12400; 
+  const itemsRescued = (safeOrders.length || 0) + 15; 
   const nextGoal = 15000;
-  const progress = (totalSaved / nextGoal) * 100;
+  const progress = Math.min(100, (totalSaved / nextGoal) * 100);
 
   return (
     <motion.div 

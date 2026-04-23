@@ -76,7 +76,11 @@ app.get('/api/venues', async (req, res) => {
 // --- ORDER ROUTES ---
 
 app.post('/api/orders', async (req, res) => {
-  const { userId, venueId, itemId, savings, code } = req.body;
+  const userId = parseInt(req.body.userId);
+  const venueId = parseInt(req.body.venueId);
+  const itemId = parseInt(req.body.itemId);
+  const savings = parseInt(req.body.savings);
+  const { code } = req.body;
   
   try {
     const result = await prisma.$transaction(async (tx) => {
