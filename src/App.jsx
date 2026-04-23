@@ -27,14 +27,10 @@ function AppContent() {
   const role = user?.role || 'user'; // user | merchant | admin
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('miam_user');
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      // If we restore session, skip onboarding
-      setCurrentView(parsedUser.role === 'user' ? 'home' : parsedUser.role);
+    if (user) {
+      setCurrentView(user.role === 'user' ? 'home' : user.role);
     }
-  }, []);
+  }, [user]);
 
 
   const handleBook = (venue, category) => {

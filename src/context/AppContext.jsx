@@ -196,7 +196,18 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [theme, setTheme] = useState(localStorage.getItem('miam_theme') || 'system');
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('miam_user')));
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('miam_user');
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      // PostgreSQL uses integer IDs. If ID is a string (UUID/timestamp from old mock data), reject it.
+      if (typeof parsed?.id !== 'number') return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  });
   const logout = () => {
     setUser(null);
     setOrders([]);
