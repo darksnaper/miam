@@ -106,13 +106,16 @@ app.post('/api/orders', async (req, res) => {
         data: { slots: item.slots - 1 }
       });
 
+      // Safe savings check
+      const safeSavings = Math.max(0, parseInt(req.body.savings) || 0);
+
       // 2. Create order
       const order = await tx.order.create({
         data: {
           userId,
           venueId: Number(venueId),
           menuPositionId: itemId,
-          savings: Number(savings),
+          savings: safeSavings,
           code: code || Math.floor(1000 + Math.random() * 9000).toString(),
         },
         include: {
@@ -121,14 +124,19 @@ app.post('/api/orders', async (req, res) => {
         }
       });
 
-      // 3. Update user aggregate stats
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          totalSaved: { increment: savings },
-          totalOrders: { increment: 1 }
-        }
-      });
+      // 3. Update user aggregate stats (only if user exists)
+      try {
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            totalSaved: { increment: safeSavings },
+            totalOrders: { increment: 1 }
+          }
+        });
+      } catch (userErr) {
+        console.warn("Could not update user stats (user might not exist in current DB)", userErr);
+        // We don't throw here, so the order is still created even if stats fail
+      }
 
       return order;
     });
