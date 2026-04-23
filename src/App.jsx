@@ -20,7 +20,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 4;
+const APP_VERSION = 5;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -44,7 +44,12 @@ function AppContent() {
 
   useEffect(() => {
     if (user && !updateLink) {
-      setCurrentView(user.role === 'user' ? 'home' : user.role);
+      setCurrentView(prev => {
+        if (prev === 'onboarding' || prev === 'auth') {
+          return user.role === 'user' ? 'home' : user.role;
+        }
+        return prev;
+      });
     }
   }, [user, updateLink]);
 
