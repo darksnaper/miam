@@ -238,13 +238,13 @@ export const AppProvider = ({ children }) => {
         const venuesData = await venuesRes.json();
         const districtsData = await districtsRes.json();
         
-        setVenues(venuesData);
-        setDistricts(districtsData);
+        setVenues(Array.isArray(venuesData) ? venuesData : []);
+        setDistricts(Array.isArray(districtsData) ? districtsData : []);
 
         if (user) {
           const ordersRes = await fetch(`${API_BASE}/orders/user/${user.id}`);
           const ordersData = await ordersRes.json();
-          setOrders(ordersData);
+          setOrders(Array.isArray(ordersData) ? ordersData : []);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
