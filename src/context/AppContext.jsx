@@ -201,9 +201,10 @@ export const AppProvider = ({ children }) => {
     if (!saved) return null;
     try {
       const parsed = JSON.parse(saved);
-      // PostgreSQL uses auto-incrementing integer IDs starting from 1. 
-      // The old mock user generated IDs using Date.now() which are > 1 trillion.
-      if (typeof parsed?.id !== 'number' || parsed.id > 1000000) {
+      // PostgreSQL uses UUID strings.
+      // The old mock user generated IDs using Date.now() which are pure numbers (or numeric strings).
+      // If the ID can be perfectly converted to a massive number, it's a legacy timestamp.
+      if (!parsed?.id || (!isNaN(Number(parsed.id)) && Number(parsed.id) > 1000000)) {
         localStorage.removeItem('miam_user');
         return null;
       }
