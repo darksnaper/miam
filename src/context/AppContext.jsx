@@ -283,7 +283,7 @@ export const AppProvider = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     localStorage.setItem('miam_theme', theme);
