@@ -122,17 +122,20 @@ const InfoPill = ({ icon, text }) => (
 
 const CategoryCard = ({ cat, selected, onClick }) => {
   const { t } = useAppContext();
+  const isSoldOut = cat.slots <= 0;
   return (
   <motion.div 
-    onClick={onClick}
-    whileTap={{ scale: 0.98 }}
+    onClick={!isSoldOut ? onClick : undefined}
+    whileTap={!isSoldOut ? { scale: 0.98 } : {}}
     style={{
       padding: '16px',
       borderRadius: '24px',
       background: 'var(--surface)',
       border: selected ? '2px solid var(--primary)' : '2px solid transparent',
       boxShadow: 'var(--shadow-sm)',
-      cursor: 'pointer',
+      cursor: isSoldOut ? 'default' : 'pointer',
+      opacity: isSoldOut ? 0.6 : 1,
+      filter: isSoldOut ? 'grayscale(100%)' : 'none',
       transition: 'all 0.2s ease'
     }}
   >

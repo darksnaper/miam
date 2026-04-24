@@ -75,7 +75,10 @@ function AppContent() {
         })
       });
 
-      if (!res.ok) throw new Error('Failed to create order');
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to create order');
+      }
 
       const createdOrder = await res.json();
       setOrders([createdOrder, ...orders]);
