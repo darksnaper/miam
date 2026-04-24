@@ -51,7 +51,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({
-    latest: 14, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    latest: 15, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
     link: "https://github.com/darksnaper/miam/releases/download/miam/app-debug.apk" // Замените на прямую ссылку на APK
   });
 });
@@ -98,7 +98,7 @@ app.post('/api/orders', async (req, res) => {
         where: { id: itemId, slots: { gt: 0 } },
         data: { slots: { decrement: 1 } }
       });
-      
+
       if (updateResult.count === 0) {
         throw new Error('Места в этом заведении уже закончились');
       }
