@@ -232,6 +232,8 @@ export const AppProvider = ({ children }) => {
   const API_BASE = 'https://miam-pied.vercel.app/api';
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       try {
         const [venuesRes, districtsRes] = await Promise.all([
@@ -242,31 +244,45 @@ export const AppProvider = ({ children }) => {
         const venuesData = await venuesRes.json();
         const districtsData = await districtsRes.json();
         
+        if (!isMounted) return;
+
         setVenues(Array.isArray(venuesData) ? venuesData : []);
         setDistricts(Array.isArray(districtsData) ? districtsData : []);
 
         if (user) {
           const ordersRes = await fetch(`${API_BASE}/orders/user/${user.id}`);
           const ordersData = await ordersRes.json();
-          setOrders(Array.isArray(ordersData) ? ordersData : []);
+          if (isMounted) {
+            setOrders(Array.isArray(ordersData) ? ordersData : []);
+          }
           
           // Background fetch to update user cache (favorites, totalSaved, status etc)
           try {
             const userRes = await fetch(`${API_BASE}/users/${user.id}`);
             const userData = await userRes.json();
-            if (!userData.error) setUser(userData);
+            if (!userData.error && isMounted) {
+              setUser(userData);
+            }
           } catch (e) { console.error('Failed to update fresh user data', e); }
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
-        setError('Не удалось загрузить данные. Проверьте интернет или состояние сервера.');
-        alert('Ошибка сервера: ' + error.message);
+        if (isMounted) {
+          setError('Не удалось загрузить данные. Проверьте интернет или состояние сервера.');
+          alert('Ошибка сервера: ' + error.message);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   useEffect(() => {
