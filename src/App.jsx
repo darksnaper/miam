@@ -20,7 +20,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 13;
+const APP_VERSION = 14;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -82,13 +82,13 @@ function AppContent() {
 
       const createdOrder = await res.json();
       setOrders([createdOrder, ...orders]);
-      
+
       if (setVenues) {
         setVenues(prev => prev.map(v => {
           if (v.id !== selectedVenue.id) return v;
           return {
             ...v,
-            categories: v.categories.map(cat => 
+            categories: v.categories.map(cat =>
               cat.id === selectedCategory.id ? { ...cat, slots: Math.max(0, cat.slots - 1) } : cat
             )
           };

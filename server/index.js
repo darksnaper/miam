@@ -51,7 +51,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({
-    latest: 13, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    latest: 14, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
     link: "https://github.com/darksnaper/miam/releases/download/miam/app-debug.apk" // Замените на прямую ссылку на APK
   });
 });
@@ -93,15 +93,15 @@ app.post('/api/orders', async (req, res) => {
     const savings = parseInt(req.body.savings) || 0;
 
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Уменьшаем слоты
-      const item = await tx.menuPosition.findUnique({ where: { id: itemId } });
-      if (!item) throw new Error('Предмет не найден');
-      if (item.slots <= 0) throw new Error('Места в этом заведении уже закончились');
-
-      await tx.menuPosition.update({
-        where: { id: itemId },
-        data: { slots: item.slots - 1 }
+      // 1. Атомарно уменьшаем слоты (защита от одновременных покупок)
+      const updateResult = await tx.menuPosition.updateMany({
+        where: { id: itemId, slots: { gt: 0 } },
+        data: { slots: { decrement: 1 } }
       });
+      
+      if (updateResult.count === 0) {
+        throw new Error('Места в этом заведении уже закончились');
+      }
 
       // 2. Создаем заказ
       const order = await tx.order.create({
