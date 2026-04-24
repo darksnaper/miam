@@ -20,7 +20,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 11;
+const APP_VERSION = 12;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
