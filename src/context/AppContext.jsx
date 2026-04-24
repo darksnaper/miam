@@ -246,8 +246,11 @@ export const AppProvider = ({ children }) => {
         
         if (!isMounted) return;
 
-        setVenues(Array.isArray(venuesData) ? venuesData : []);
-        setDistricts(Array.isArray(districtsData) ? districtsData : []);
+        if (!Array.isArray(venuesData)) throw new Error(venuesData.error || 'Ошибка загрузки заведений');
+        if (!Array.isArray(districtsData)) throw new Error(districtsData.error || 'Ошибка загрузки районов');
+
+        setVenues(venuesData);
+        setDistricts(districtsData);
 
         if (user) {
           const ordersRes = await fetch(`${API_BASE}/orders/user/${user.id}`);
@@ -397,7 +400,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{ 
       theme, setTheme, lang, setLang, t, 
-      venues, districts, isLoading,
+      venues, setVenues, districts, isLoading,
       fetchOrders, updateVenueSlots, addVenueCategory, 
       orders, setOrders,
       user, setUser, logout, refreshUser, toggleFavoriteVenue,

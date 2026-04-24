@@ -27,7 +27,7 @@ function AppContent() {
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const { user, setUser, logout, orders, setOrders, API_BASE } = useAppContext();
+  const { user, setUser, logout, orders, setOrders, venues, setVenues, API_BASE } = useAppContext();
   const [updateLink, setUpdateLink] = useState(null);
 
   const role = user?.role || 'user'; // user | merchant | admin
@@ -82,6 +82,19 @@ function AppContent() {
 
       const createdOrder = await res.json();
       setOrders([createdOrder, ...orders]);
+      
+      if (setVenues) {
+        setVenues(prev => prev.map(v => {
+          if (v.id !== selectedVenue.id) return v;
+          return {
+            ...v,
+            categories: v.categories.map(cat => 
+              cat.id === selectedCategory.id ? { ...cat, slots: Math.max(0, cat.slots - 1) } : cat
+            )
+          };
+        }));
+      }
+
       setCurrentView('checkout');
     } catch (error) {
       alert('Ошибка при создании заказа: ' + error.message);

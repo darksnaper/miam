@@ -110,6 +110,12 @@ const HomeScreen = ({ onSelectVenue }) => {
     const matchesSearch = (v.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           v.type?.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
+  }).sort((a, b) => {
+    const aSlots = (a.categories || []).reduce((sum, cat) => sum + (cat.slots || 0), 0);
+    const bSlots = (b.categories || []).reduce((sum, cat) => sum + (cat.slots || 0), 0);
+    if (aSlots === 0 && bSlots > 0) return 1;
+    if (aSlots > 0 && bSlots === 0) return -1;
+    return 0;
   });
 
   return (
