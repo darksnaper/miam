@@ -72,13 +72,13 @@ const Checkout = ({ venue, order, onBack, onDone }) => {
         </div>
 
         <div style={{ width: '100%', textAlign: 'center' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '4px' }}>{t(venue.name)}</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>{t('checkout.order')} {order?.id || '#MIAM-8842'}</p>
+          <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '4px' }}>{t(venue?.name || order?.venue?.name || order?.venue)}</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>{t('checkout.order')} {order?.id?.split('-')[0] || '#MIAM-8842'}</p>
           
           <div style={{ borderTop: '1px dashed var(--border)', paddingTop: '20px', width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
               <span style={{ color: 'var(--text-muted)' }}>{t('checkout.time')}</span>
-              <span style={{ fontWeight: 700 }}>{order?.time || venue.pickupWindow || venue.closingTime}</span>
+              <span style={{ fontWeight: 700 }}>{order?.time || venue?.pickupWindow || venue?.closingTime || order?.venue?.closingTime || ''}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>{t('checkout.status')}</span>

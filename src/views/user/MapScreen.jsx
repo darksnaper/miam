@@ -39,7 +39,12 @@ const MapScreen = ({ onBack, onSelectVenue }) => {
             yandexMapDisablePoiInteractivity: true,
           }}
         >
-          {venues.map(venue => (
+          {venues.map(venue => {
+            const categories = venue.categories || [];
+            const totalSlots = categories.reduce((acc, cat) => acc + (cat.slots || 0), 0);
+            const isSoldOut = totalSlots === 0;
+
+            return (
             <Placemark
               key={venue.id}
               geometry={venue.coords}
@@ -49,7 +54,7 @@ const MapScreen = ({ onBack, onSelectVenue }) => {
                   <div style="font-family: inherit; font-size: 14px;">
                     <div style="color: #4CAF50; font-weight: 700;">★ ${venue.rating} • ${venue.distance}</div>
                     <div style="color: #666; margin-top: 4px;">${venue.address}</div>
-                    <button id="venue-${venue.id}" style="
+                    ${isSoldOut ? `<div style="margin-top: 10px; color: #E65100; font-weight: 700; text-align: center; padding: 8px; background: #FFF3E0; border-radius: 8px;">Распродано</div>` : `<button id="venue-${venue.id}" style="
                       margin-top: 10px; 
                       width: 100%; 
                       padding: 8px; 
@@ -59,13 +64,13 @@ const MapScreen = ({ onBack, onSelectVenue }) => {
                       border-radius: 8px; 
                       font-weight: 700;
                       cursor: pointer;
-                    ">Перейти к заказу</button>
+                    ">Перейти к заказу</button>`}
                   </div>
                 `,
               }}
               options={{
-                preset: 'islands#greenFoodIcon',
-                iconColor: venue.id === 1 ? '#FF9800' : '#4CAF50',
+                preset: isSoldOut ? 'islands#grayFoodIcon' : 'islands#greenFoodIcon',
+                iconColor: isSoldOut ? '#9e9e9e' : (venue.id === 1 ? '#FF9800' : '#4CAF50'),
               }}
               modules={['geoObject.addon.balloon']}
               onBalloonOpen={() => {
@@ -77,7 +82,8 @@ const MapScreen = ({ onBack, onSelectVenue }) => {
                 }, 100);
               }}
             />
-          ))}
+            );
+          })}
         </Map>
       </YMaps>
 

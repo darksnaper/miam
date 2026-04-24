@@ -20,12 +20,13 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 10;
+const APP_VERSION = 11;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const { user, setUser, logout, orders, setOrders, API_BASE } = useAppContext();
   const [updateLink, setUpdateLink] = useState(null);
 
@@ -124,6 +125,7 @@ function AppContent() {
                 key="orders"
                 orders={orders}
                 onSelectOrder={(order) => {
+                  setSelectedOrder(order);
                   setCurrentView('checkout');
                 }}
               />
@@ -178,9 +180,15 @@ function AppContent() {
               <Checkout
                 key="checkout"
                 venue={selectedVenue}
-                order={orders[0]} // Pass the newly created order
-                onBack={() => setCurrentView('home')}
-                onDone={() => setCurrentView('home')}
+                order={selectedOrder || orders[0]}
+                onBack={() => {
+                  setSelectedOrder(null);
+                  setCurrentView('home');
+                }}
+                onDone={() => {
+                  setSelectedOrder(null);
+                  setCurrentView('home');
+                }}
               />
             )}
 

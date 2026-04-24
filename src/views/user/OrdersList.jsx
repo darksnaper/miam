@@ -98,11 +98,11 @@ const OrderCard = ({ order, active, onClick }) => {
         <img src={venueImage} alt={venueName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700 }}>{venueName}</h3>
-          {active && <QrCode size={20} color="var(--primary)" />}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>{venueName}</h3>
+          {active && <QrCode size={20} color="var(--primary)" style={{ flexShrink: 0 }} />}
         </div>
-        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', marginTop: '2px' }}>{itemName}</p>
+        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{itemName}</p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
           <span style={{ fontSize: '12px', fontWeight: 600, color: active ? 'var(--primary)' : 'var(--text-muted)' }}>
             {timeDisplay}

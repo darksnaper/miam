@@ -69,7 +69,7 @@ const VenueDetail = ({ venue, onBack, onBook }) => {
         <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '16px' }}>{t('venue.available')}</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {venue.categories.map((cat) => (
+          {venue.categories?.map((cat) => (
             <CategoryCard 
               key={cat.id} 
               cat={cat} 
@@ -77,6 +77,11 @@ const VenueDetail = ({ venue, onBack, onBook }) => {
               onClick={() => setSelectedCategory(cat)}
             />
           ))}
+          {(!venue.categories || venue.categories.length === 0) && (
+            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
+              Сейчас нет доступных позиций
+            </div>
+          )}
         </div>
       </div>
 

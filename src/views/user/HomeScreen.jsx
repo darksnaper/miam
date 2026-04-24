@@ -9,15 +9,15 @@ import { Geolocation } from '@capacitor/geolocation';
 
 const HomeScreen = ({ onSelectVenue }) => {
   const { t, venues = [], districts: AVAILABLE_DISTRICTS = [], isLoading } = useAppContext();
-  const initialDistrictId = sessionStorage.getItem('saved_district') || 'petrogradsky';
-  const initialDistrict = (AVAILABLE_DISTRICTS || []).find(d => d.id === initialDistrictId) || (AVAILABLE_DISTRICTS || [])[0] || { center: [59.9575, 30.3081], id: 'petrogradsky', name: 'Петроградский' };
+  const initialDistrictId = sessionStorage.getItem('saved_district') || null;
+  const initialDistrict = (AVAILABLE_DISTRICTS || []).find(d => d.id === (initialDistrictId || 'petrogradsky')) || (AVAILABLE_DISTRICTS || [])[0] || { center: [59.9575, 30.3081], id: 'petrogradsky', name: 'Петроградский' };
 
   const [activeCategory, setActiveCategory] = useState("Все");
   const [searchQuery, setSearchQuery] = useState("");
   const [userLocation, setUserLocation] = useState([59.9575, 30.3081]); 
   const [mapCenter, setMapCenter] = useState(initialDistrict.center);
   const [selectedDistrictId, setSelectedDistrictId] = useState(initialDistrictId);
-  const [isLocating, setIsLocating] = useState(false);
+  const [isLocating, setIsLocating] = useState(!initialDistrictId);
   const [isUserOutside, setIsUserOutside] = useState(false);
   const [showSelector, setShowSelector] = useState(false);
   const [hasLocation, setHasLocation] = useState(false);
@@ -261,7 +261,20 @@ const HomeScreen = ({ onSelectVenue }) => {
 
       {/* Venues List or Empty State */}
       <div style={{ padding: '0 20px', paddingBottom: '30px' }}>
-        {selectedDistrictId !== 'petrogradsky' ? (
+        {!selectedDistrictId || isLocating ? (
+          <div style={{ 
+            background: 'var(--surface)', padding: '30px 24px', borderRadius: '24px', 
+            textAlign: 'center', boxShadow: 'var(--shadow-sm)', marginTop: '8px' 
+          }}>
+            <div style={{ background: '#E3F2FD', width: 64, height: 64, borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
+              <Navigation size={32} color="#2196F3" />
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '12px' }}>Ищем вас...</h3>
+            <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
+              Определяем ваш район, чтобы показать лучшие предложения поблизости.
+            </p>
+          </div>
+        ) : selectedDistrictId !== 'petrogradsky' ? (
           <div style={{ 
             background: 'var(--surface)', padding: '30px 24px', borderRadius: '24px', 
             textAlign: 'center', boxShadow: 'var(--shadow-sm)', marginTop: '8px' 
@@ -277,7 +290,7 @@ const HomeScreen = ({ onSelectVenue }) => {
                onClick={() => {
                  setSelectedDistrictId('petrogradsky');
                  sessionStorage.setItem('saved_district', 'petrogradsky');
-                 setMapCenter(AVAILABLE_DISTRICTS.find(d => d.id === 'petrogradsky').center);
+                 setMapCenter(AVAILABLE_DISTRICTS.find(d => d.id === 'petrogradsky')?.center || [59.9575, 30.3081]);
                }}
                style={{ 
                  background: 'var(--primary)', color: 'white', border: 'none', 
@@ -291,7 +304,7 @@ const HomeScreen = ({ onSelectVenue }) => {
         ) : (
           <>
             <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '16px' }}>
-              {!isUserOutside ? t('home.nearby') : `${t('home.available')} ${currentDistrict?.name}`}
+              {!isUserOutside ? t('home.nearby') : `${t('home.available')} ${currentDistrict?.name || 'Петроградский'}`}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {filteredVenues.map((venue) => (
@@ -358,14 +371,14 @@ const VenueCard = ({ venue, onClick, hasLocation }) => {
       </div>
       <div style={{ padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '4px' }}>
-          <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '2px' }}>{t(venue.name || '')}</h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+          <div style={{ flex: 1, minWidth: 0, paddingRight: '12px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(venue.name || '')}</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {t(venue.type || '')} • {t(venue.address || '')}{hasLocation ? ` • ${venue.distance}` : ''}
             </p>
           </div>
-          <div style={{ textAlign: 'right' }}>
-             <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary)' }}>{t('home.until')} {venue.closingTime}</p>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+             <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{t('home.until')} {venue.closingTime}</p>
           </div>
         </div>
       </div>
