@@ -22,16 +22,30 @@ const HomeScreen = ({ onSelectVenue }) => {
   const [showSelector, setShowSelector] = useState(false);
   const [hasLocation, setHasLocation] = useState(false);
 
+  const locationFetched = React.useRef(false);
+
   useEffect(() => {
+    if (AVAILABLE_DISTRICTS.length === 0) return;
+    if (locationFetched.current) return;
+    
+    locationFetched.current = true;
+
     const locateUser = async () => {
-      setIsLocating(true);
+      const needsDistrict = !sessionStorage.getItem('saved_district');
+      
+      if (needsDistrict) {
+        setIsLocating(true);
+      }
       
       const safetyTimeout = setTimeout(() => {
-        setIsLocating(false);
-        if (!sessionStorage.getItem('saved_district')) {
-          setIsUserOutside(true);
-          setSelectedDistrictId('petrogradsky');
-          setMapCenter(AVAILABLE_DISTRICTS[0].center);
+        if (needsDistrict) {
+          setIsLocating(false);
+          if (!sessionStorage.getItem('saved_district')) {
+            setIsUserOutside(true);
+            setSelectedDistrictId('petrogradsky');
+            setMapCenter(AVAILABLE_DISTRICTS[0]?.center || [59.9575, 30.3081]);
+            sessionStorage.setItem('saved_district', 'petrogradsky');
+          }
         }
       }, 6000);
 
@@ -44,7 +58,7 @@ const HomeScreen = ({ onSelectVenue }) => {
         setUserLocation(coords);
         setHasLocation(true);
         
-        if (!sessionStorage.getItem('saved_district')) {
+        if (needsDistrict && !sessionStorage.getItem('saved_district')) {
           const district = AVAILABLE_DISTRICTS.find(d => 
             coords[0] >= d.bounds.lat[0] && coords[0] <= d.bounds.lat[1] &&
             coords[1] >= d.bounds.lng[0] && coords[1] <= d.bounds.lng[1]
@@ -58,26 +72,29 @@ const HomeScreen = ({ onSelectVenue }) => {
           } else {
             setIsUserOutside(true);
             setSelectedDistrictId('petrogradsky');
-            setMapCenter(AVAILABLE_DISTRICTS[0].center);
+            setMapCenter(AVAILABLE_DISTRICTS[0]?.center || [59.9575, 30.3081]);
+            sessionStorage.setItem('saved_district', 'petrogradsky');
           }
+          setIsLocating(false);
+          setShowSelector(false);
         }
-        setShowSelector(false);
-        setIsLocating(false);
       } catch (e) {
         clearTimeout(safetyTimeout);
-        setIsLocating(false);
-        if (!sessionStorage.getItem('saved_district')) {
-          setIsUserOutside(true);
-          setSelectedDistrictId('petrogradsky');
-          setMapCenter(AVAILABLE_DISTRICTS[0].center);
+        if (needsDistrict) {
+          setIsLocating(false);
+          if (!sessionStorage.getItem('saved_district')) {
+            setIsUserOutside(true);
+            setSelectedDistrictId('petrogradsky');
+            setMapCenter(AVAILABLE_DISTRICTS[0]?.center || [59.9575, 30.3081]);
+            sessionStorage.setItem('saved_district', 'petrogradsky');
+          }
+          setShowSelector(false);
         }
-        setShowSelector(false);
       }
     };
 
     locateUser();
-    return () => {};
-  }, []);
+  }, [AVAILABLE_DISTRICTS]);
 
   const handleSelectDistrict = (district) => {
     setSelectedDistrictId(district.id);
