@@ -51,7 +51,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({
-    latest: 20, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
+    latest: 21, // Увеличьте это число на сервере, когда захотите заставить всех обновиться
     link: "https://github.com/darksnaper/miam/releases/download/miam/app-debug.apk" // Замените на прямую ссылку на APK
   });
 });

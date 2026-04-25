@@ -66,17 +66,20 @@ const OrdersList = ({ onSelectOrder, user }) => {
 };
 
 const OrderCard = ({ order, active, onClick }) => {
-  // Extract data based on whether order is from mock data or local state
-  const venueName = typeof order.venue === 'object' ? order.venue.name : order.venue;
-  const venueImage = typeof order.venue === 'object' ? order.venue.image : order.image;
-  const itemName = order.category ? order.category.name : order.item;
-  const itemPrice = order.category ? order.category.price : order.price;
+  // Extract data based on whether order is from database or legacy/mock format
+  const venueName = order.venue?.name || order.venue;
+  const venueImage = order.venue?.image || order.image;
   
-  // Format time
+  const itemName = order.menuPosition?.name || order.category?.name || order.item;
+  const itemPrice = order.menuPosition?.price || order.category?.price || order.price;
+  
+  // Format time (database uses createdAt, mock used date/time)
   let timeDisplay = order.time;
-  if (order.date) {
-    const d = new Date(order.date);
-    timeDisplay = d.toLocaleDateString([], { day: 'numeric', month: 'short' });
+  const dateSource = order.createdAt || order.date;
+  
+  if (dateSource) {
+    const d = new Date(dateSource);
+    timeDisplay = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
   }
 
   return (
