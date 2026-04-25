@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capawesome-team/capacitor-file-opener';
+import { App as CapApp } from '@capacitor/app';
 import { ChefHat, Navigation, Compass, ShoppingBag, User } from 'lucide-react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import AuthScreen from './views/auth/AuthScreen';
@@ -20,7 +21,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 15;
+const APP_VERSION = 16;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -53,6 +54,35 @@ function AppContent() {
       });
     }
   }, [user, updateLink]);
+
+  useEffect(() => {
+    const setupBackListener = async () => {
+      const backListener = await CapApp.addListener('backButton', () => {
+        if (currentView === 'home' || currentView === 'auth' || currentView === 'onboarding') {
+          CapApp.exitApp();
+        } else if (['detail', 'map', 'orders', 'profile'].includes(currentView)) {
+          setCurrentView('home');
+        } else if (currentView === 'payment') {
+          setCurrentView('detail');
+        } else if (currentView === 'checkout') {
+          setCurrentView('home');
+        } else if (['settings', 'favorites', 'notifications', 'support'].includes(currentView)) {
+          setCurrentView('profile');
+        } else if (currentView === 'merchant' || currentView === 'admin') {
+          setCurrentView('auth');
+        } else {
+          setCurrentView('home');
+        }
+      });
+      return backListener;
+    };
+
+    const listenerPromise = setupBackListener();
+    return () => {
+      listenerPromise.then(l => l.remove());
+    };
+  }, [currentView]);
+
 
 
   const handleBook = (venue, category) => {
