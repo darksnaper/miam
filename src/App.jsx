@@ -21,13 +21,14 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 16;
+const APP_VERSION = 17;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [venueSource, setVenueSource] = useState('home');
   const { user, setUser, logout, orders, setOrders, venues, setVenues, API_BASE } = useAppContext();
   const [updateLink, setUpdateLink] = useState(null);
 
@@ -60,16 +61,18 @@ function AppContent() {
       const backListener = await CapApp.addListener('backButton', () => {
         if (currentView === 'home' || currentView === 'auth' || currentView === 'onboarding') {
           CapApp.exitApp();
-        } else if (['detail', 'map', 'orders', 'profile'].includes(currentView)) {
-          setCurrentView('home');
+        } else if (currentView === 'detail') {
+          setCurrentView(venueSource);
         } else if (currentView === 'payment') {
           setCurrentView('detail');
         } else if (currentView === 'checkout') {
-          setCurrentView('home');
+          const target = selectedOrder ? 'orders' : 'home';
+          setSelectedOrder(null);
+          setCurrentView(target);
         } else if (['settings', 'favorites', 'notifications', 'support'].includes(currentView)) {
           setCurrentView('profile');
-        } else if (currentView === 'merchant' || currentView === 'admin') {
-          setCurrentView('auth');
+        } else if (['map', 'orders', 'profile'].includes(currentView)) {
+          setCurrentView('home');
         } else {
           setCurrentView('home');
         }
@@ -149,6 +152,7 @@ function AppContent() {
                     setCurrentView('map');
                   } else {
                     setSelectedVenue(v);
+                    setVenueSource('home');
                     setCurrentView('detail');
                   }
                 }}
@@ -161,6 +165,7 @@ function AppContent() {
                 onBack={() => setCurrentView('home')}
                 onSelectVenue={(v) => {
                   setSelectedVenue(v);
+                  setVenueSource('map');
                   setCurrentView('detail');
                 }}
               />
@@ -195,6 +200,7 @@ function AppContent() {
                 onBack={() => setCurrentView('profile')}
                 onSelectVenue={(v) => {
                   setSelectedVenue(v);
+                  setVenueSource('favorites');
                   setCurrentView('detail');
                 }}
               />
@@ -207,7 +213,7 @@ function AppContent() {
               <VenueDetail
                 key="detail"
                 venue={selectedVenue}
-                onBack={() => setCurrentView('home')}
+                onBack={() => setCurrentView(venueSource)}
                 onBook={(cat) => handleBook(selectedVenue, cat)}
               />
             )}
@@ -228,8 +234,9 @@ function AppContent() {
                 venue={selectedVenue}
                 order={selectedOrder || orders[0]}
                 onBack={() => {
+                  const target = selectedOrder ? 'orders' : 'home';
                   setSelectedOrder(null);
-                  setCurrentView('home');
+                  setCurrentView(target);
                 }}
                 onDone={() => {
                   setSelectedOrder(null);
