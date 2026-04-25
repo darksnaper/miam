@@ -21,7 +21,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 19;
+const APP_VERSION = 20;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -218,7 +218,7 @@ function AppContent() {
             {currentView === 'detail' && (
               <VenueDetail
                 key="detail"
-                venue={selectedVenue}
+                venue={venues.find(v => v.id === selectedVenue?.id) || selectedVenue}
                 onBack={() => setCurrentView(venueSource)}
                 onBook={(cat) => handleBook(selectedVenue, cat)}
               />
