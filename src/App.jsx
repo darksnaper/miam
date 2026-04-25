@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capawesome-team/capacitor-file-opener';
 import { App as CapApp } from '@capacitor/app';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { ChefHat, Navigation, Compass, ShoppingBag, User } from 'lucide-react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import AuthScreen from './views/auth/AuthScreen';
@@ -21,7 +22,50 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 21;
+const APP_VERSION = 22;
+
+const scheduleOrderNotifications = async (order, venue) => {
+  try {
+    const perm = await LocalNotifications.requestPermissions();
+    if (perm.display !== 'granted') return;
+
+    const window = venue.pickupWindow || "19:00 - 20:00";
+    const [start] = window.split(' - ');
+    const [hours, minutes] = start.split(':').map(Number);
+
+    const pickupDate = new Date();
+    pickupDate.setHours(hours, minutes, 0, 0);
+
+    const now = new Date();
+    const notifications = [];
+    
+    const config = [
+      { offset: 120, msg: `Через 2 часа пора забирать заказ в ${venue.name}!` },
+      { offset: 60, msg: `Через час ждем вас в ${venue.name} за заказом.` },
+      { offset: 30, msg: `Осталось 30 минут до начала выдачи в ${venue.name}.` },
+      { offset: 0, msg: `Время забирать заказ в ${venue.name}! Ваш код: ${order.code}` }
+    ];
+
+    config.forEach((item, idx) => {
+      const scheduleTime = new Date(pickupDate.getTime() - item.offset * 60000);
+      if (scheduleTime > now) {
+        notifications.push({
+          title: 'Miam: Пора за едой!',
+          body: item.msg,
+          id: Math.floor(Math.random() * 1000000),
+          schedule: { at: scheduleTime },
+          sound: 'default'
+        });
+      }
+    });
+
+    if (notifications.length > 0) {
+      await LocalNotifications.schedule({ notifications });
+    }
+  } catch (e) {
+    console.error('Failed to schedule notifications', e);
+  }
+};
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -121,6 +165,9 @@ function AppContent() {
 
       const createdOrder = await res.json();
       setOrders([createdOrder, ...orders]);
+
+      // Запланировать уведомления для самовывоза
+      scheduleOrderNotifications(createdOrder, selectedVenue);
 
       if (setVenues) {
         setVenues(prev => prev.map(v => {
