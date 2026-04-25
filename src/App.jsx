@@ -21,7 +21,7 @@ import MerchantDashboard from './views/merchant/MerchantDashboard';
 import AdminDashboard from './views/admin/AdminDashboard';
 import './index.css';
 
-const APP_VERSION = 17;
+const APP_VERSION = 19;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('onboarding');
@@ -29,8 +29,14 @@ function AppContent() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [venueSource, setVenueSource] = useState('home');
-  const { user, setUser, logout, orders, setOrders, venues, setVenues, API_BASE } = useAppContext();
+  const { user, setUser, logout, orders, setOrders, venues, setVenues, refreshVenues, API_BASE } = useAppContext();
   const [updateLink, setUpdateLink] = useState(null);
+
+  useEffect(() => {
+    if (['home', 'map', 'detail'].includes(currentView)) {
+      refreshVenues();
+    }
+  }, [currentView]);
 
   const role = user?.role || 'user'; // user | merchant | admin
 

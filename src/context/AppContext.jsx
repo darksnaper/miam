@@ -231,6 +231,18 @@ export const AppProvider = ({ children }) => {
 
   const API_BASE = 'https://miam-pied.vercel.app/api';
 
+  const refreshVenues = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/venues`);
+      const venuesData = await res.json();
+      if (Array.isArray(venuesData)) {
+        setVenues(venuesData);
+      }
+    } catch (e) {
+      console.error('Auto-refresh venues failed:', e);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -259,7 +271,6 @@ export const AppProvider = ({ children }) => {
             setOrders(Array.isArray(ordersData) ? ordersData : []);
           }
           
-          // Background fetch to update user cache (favorites, totalSaved, status etc)
           try {
             const userRes = await fetch(`${API_BASE}/users/${user.id}`);
             const userData = await userRes.json();
@@ -272,7 +283,6 @@ export const AppProvider = ({ children }) => {
         console.error('Failed to fetch data:', error);
         if (isMounted) {
           setError('Не удалось загрузить данные. Проверьте интернет или состояние сервера.');
-          alert('Ошибка сервера: ' + error.message);
         }
       } finally {
         if (isMounted) {
@@ -283,8 +293,12 @@ export const AppProvider = ({ children }) => {
 
     fetchData();
 
+    // Set up auto-refresh every 5 seconds for a real-time feel
+    const interval = setInterval(refreshVenues, 5000);
+
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, [user?.id]);
 
@@ -401,7 +415,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider value={{ 
       theme, setTheme, lang, setLang, t, 
       venues, setVenues, districts, isLoading,
-      fetchOrders, updateVenueSlots, addVenueCategory, 
+      fetchOrders, updateVenueSlots, addVenueCategory, refreshVenues,
       orders, setOrders,
       user, setUser, logout, refreshUser, toggleFavoriteVenue,
       API_BASE
